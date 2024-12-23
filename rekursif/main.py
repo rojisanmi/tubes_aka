@@ -5,139 +5,143 @@ from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.textinput import TextInput
 from kivy.uix.popup import Popup
-from words import word_list
 
+# Sample word list
+word_list = ["PYTHON", "KIVY", "HANGMAN", "PROGRAMMING", "DEVELOPER"]
 
 class HangmanApp(App):
     def build(self):
-        # Inisialisasi data permainan
         self.word = self.get_word()
-        self.word_completion = ["_"] * len(self.word)
+        self.word_completion = "_" * len(self.word)
         self.guessed_letters = []
         self.tries = 6
 
-        # Membuat layout antarmuka
-        layout = BoxLayout(orientation='vertical')
-        self.word_label = Label(text=" ".join(self.word_completion))
-        self.hangman_label = Label(text=self.display_hangman(self.tries))
-        self.input_box = TextInput(hint_text='Guess a letter', multiline=False, input_filter='string')
-        self.guess_button = Button(text='Guess')
-        self.guess_button.bind(on_press=self.start_recursive_game)
+        self.layout = BoxLayout(orientation='vertical')
+        self.hangman_label = Label(text=self.display_hangman(self.tries), font_size=20)
+        self.word_label = Label(text=self.word_completion, font_size=24)
+        self.input_box = TextInput(hint_text='Guess a letter or word', multiline=False)
+        self.guess_button = Button(text='Guess', on_press=self.make_guess)
 
-        layout.add_widget(self.hangman_label)
-        layout.add_widget(self.word_label)
-        layout.add_widget(self.input_box)
-        layout.add_widget(self.guess_button)
+        self.layout.add_widget(self.hangman_label)
+        self.layout.add_widget(self.word_label)
+        self.layout.add_widget(self.input_box)
+        self.layout.add_widget(self.guess_button)
 
-        return layout
+        return self.layout
 
     def get_word(self):
-        # Mengambil kata acak dari word_list
         return random.choice(word_list).upper()
 
+    def make_guess(self, instance):
+        guess = self.input_box.text.upper()
+        self.input_box.text = ''
+        self.process_guess(guess)
+
+    def process_guess(self, guess):
+        if self.tries <= 0:
+            self.show_popup("Sorry, you ran out of tries. The word was " + self.word + ". Maybe next time!")
+            return
+
+        if len(guess) == 1 and guess.isalpha():
+            if guess in self.guessed_letters:
+                self.show_popup("You already guessed the letter " + guess)
+            elif guess not in self.word:
+                self.tries -= 1
+                self.guessed_letters.append(guess)
+                self.show_popup(guess + " is not in the word.")
+            else:
+                self.guessed_letters.append(guess)
+                self.word_completion = ''.join(
+                    [letter if letter in self.guessed_letters else '_' for letter in self.word]
+                )
+                if "_" not in self.word_completion:
+                    self.show_popup("Congrats, you guessed the word! You win!")
+                    return
+        elif len(guess) == len(self.word) and guess.isalpha():
+            if guess != self.word:
+                self.tries -= 1
+                self.show_popup(guess + " is not the word.")
+            else:
+                self.word_completion = self.word
+                self.show_popup("Congrats, you guessed the word! You win!")
+                return
+        else:
+            self.show_popup("Not a valid guess.")
+
+        self.hangman_label.text = self.display_hangman(self.tries)
+        self.word_label.text = self.word_completion
+
+        # Recursively prompt for the next guess
+        if self.tries > 0 and "_" in self.word_completion:
+            self.input_box.focus = True
+
     def display_hangman(self, tries):
-        stages = [  # final state: head, body, both arms, and both legs
+        stages = [
             """
-               -----
-               |   |
-               |   O
-               |  /|\\
-               |  / \\
+               --------
+               |      |
+               |      O
+               |     \|/
+               |      |
                -
             """,
-            # head, body, one arm, one leg
             """
-               -----
-               |   |
-               |   O
-               |  /|\\
-               |  /
+               --------
+               |      |
+               |      O
+               |     \|/
+               |      |
+               |     / 
                -
             """,
-            # head, body, one arm
             """
-               -----
-               |   |
-               |   O
-               |  /|
-               |
+               --------
+               |      |
+               |      O
+               |     \|/
+               |      |
+               |      
                -
             """,
-            # head, body
             """
-               -----
-               |   |
-               |   O
-               |   |
-               |
+               --------
+               |      |
+               |      O
+               |     \|
+               |      |
+               |     
                -
             """,
-            # head
             """
-               -----
-               |   |
-               |   O
-               |
-               |
+               --------
+               |      |
+               |      O
+               |      |
+               |      |     
                -
             """,
-            # initial empty state
             """
-               -----
-               |   |
-               |
-               |
-               |
+               --------
+               |      |
+               |      O    
+               |      
+               |     
+               -
+            """,
+            """
+               --------
+               |      |
+               |          
+               |      
+               |     
                -
             """
         ]
-        return stages[min(max(0, tries), len(stages) - 1)]  # Ensure tries is within valid range
+        return stages[tries]
 
     def show_popup(self, message):
-        popup = Popup(title='Notification',
-                      content=Label(text=message),
-                      size_hint=(0.6, 0.4))
+        popup = Popup(title='Message', content=Label(text=message), size_hint=(None, None), size=(400, 200))
         popup.open()
 
-    def start_recursive_game(self, instance):
-        # Memulai proses rekursif permainan
-        self.guess_recursive()
-
-    def guess_recursive(self):
-        # Kondisi akhir (base case): menang atau kalah
-        if "_" not in self.word_completion:
-            self.show_popup(f"Congratulations! You guessed the word: {''.join(self.word_completion)}")
-            return
-        if self.tries == 0:
-            self.show_popup(f"Game over! The word was: {self.word}")
-            return
-
-        # Proses input dan validasi
-        guess = self.input_box.text.upper()
-        self.input_box.text = ''  # Kosongkan kotak input
-        if guess in self.guessed_letters:
-            self.show_popup("You already guessed that letter.")
-        elif len(guess) == 1 and guess.isalpha():
-            self.guessed_letters.append(guess)
-            if guess in self.word:
-                for i, letter in enumerate(self.word):
-                    if letter == guess:
-                        self.word_completion[i] = guess
-            else:
-                self.tries -= 1
-        else:
-            self.show_popup("Invalid input. Please guess a single letter.")
-
-        # Update tampilan
-        self.word_label.text = " ".join(self.word_completion)
-        self.hangman_label.text = self.display_hangman(self.tries)
-
-        # Panggilan rekursif untuk langkah berikutnya
-        self.guess_recursive()
-
-
-# Menjalankan aplikasi
-if __name__ == '__main__':
-	import logging
-	logging.basicConfig(level=logging.DEBUG)
-	HangmanApp().run()
+if __name__ == "__main__":
+    HangmanApp().run()

@@ -4,124 +4,139 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.textinput import TextInput
+from kivy.uix.popup import Popup
 
-class HangmanGame(BoxLayout):
-    def __init__(self, **kwargs):
-        super(HangmanGame, self).__init__(**kwargs)
-        self.word_list = ['apple', 'banana', 'mango', 'strawberry', 'orange']
-        self.start_game()
+# Sample word list
+word_list = ["PYTHON", "KIVY", "HANGMAN", "PROGRAMMING", "DEVELOPER"]
 
-    def start_game(self):
-        self.word = random.choice(self.word_list)
+class HangmanApp(App):
+    def build(self):
+        self.word = self.get_word()
         self.word_completion = "_" * len(self.word)
         self.guessed_letters = []
         self.tries = 6
 
-        self.clear_widgets()
-        self.add_widget(Label(text="Let's play Hangman!"))
-        self.hangman_label = Label(text=self.display_hangman(self.tries))
-        self.add_widget(self.hangman_label)
-        self.word_label = Label(text=self.word_completion)
-        self.add_widget(self.word_label)
+        self.layout = BoxLayout(orientation='vertical')
+        self.hangman_label = Label(text=self.display_hangman(self.tries), font_size=20)
+        self.word_label = Label(text=self.word_completion, font_size=24)
+        self.input_box = TextInput(hint_text='Guess a letter or word', multiline=False)
+        self.guess_button = Button(text='Guess', on_press=self.make_guess)
 
-        self.guess_input = TextInput(hint_text='Guess a letter', multiline=False)
-        self.add_widget(self.guess_input)
+        self.layout.add_widget(self.hangman_label)
+        self.layout.add_widget(self.word_label)
+        self.layout.add_widget(self.input_box)
+        self.layout.add_widget(self.guess_button)
 
-        self.guess_button = Button(text='Guess')
-        self.guess_button.bind(on_press=self.make_guess)
-        self.add_widget(self.guess_button)
+        return self.layout
+
+    def get_word(self):
+        return random.choice(word_list).upper()
 
     def make_guess(self, instance):
-        guess = self.guess_input.text.lower()
-        self.guess_input.text = ''
+        guess = self.input_box.text.upper()
+        self.input_box.text = ''
 
-        if guess in self.guessed_letters:
-            self.word_label.text = "You already guessed that letter."
-        elif guess not in self.word:
-            self.tries -= 1
-            self.guessed_letters.append(guess)
-            self.word_label.text = "Incorrect guess."
-        else:
-            self.guessed_letters.append(guess)
-            self.word_completion = "".join([letter if letter in self.guessed_letters else "_" for letter in self.word])
-            self.word_label.text = self.word_completion
+        while self.tries > 0:
+            if len(guess) == 1 and guess.isalpha():
+                if guess in self.guessed_letters:
+                    self.show_popup("You already guessed the letter " + guess)
+                elif guess not in self.word:
+                    self.tries -= 1
+                    self.guessed_letters.append(guess)
+                    self.show_popup(guess + " is not in the word.")
+                else:
+                    self.guessed_letters.append(guess)
+                    self.word_completion = ''.join(
+                        [letter if letter in self.guessed_letters else '_' for letter in self.word]
+                    )
+                    if "_" not in self.word_completion:
+                        self.show_popup("Congrats, you guessed the word! You win!")
+                break
+            elif len(guess) == len(self.word) and guess.isalpha():
+                if guess != self.word:
+                    self.tries -= 1
+                    self.show_popup(guess + " is not the word.")
+                else:
+                    self.word_completion = self.word
+                    self.show_popup("Congrats, you guessed the word! You win!")
+                break
+            else:
+                self.show_popup("Not a valid guess.")
+                break
 
         self.hangman_label.text = self.display_hangman(self.tries)
+        self.word_label.text = self.word_completion
 
-        if "_" not in self.word_completion:
-            self.word_label.text = f"Congratulations! You've guessed the word: {self.word}"
-            self.add_try_again_button()
-        elif self.tries == 0:
-            self.word_label.text = f"Sorry, you lost! The word was: {self.word}"
-            self.add_try_again_button()
-
-    def add_try_again_button(self):
-        self.guess_button.disabled = True
-        self.try_again_button = Button(text='Try Again')
-        self.try_again_button.bind(on_press=self.start_game)
-        self.add_widget(self.try_again_button)
+        if self.tries <= 0:
+            self.show_popup("Sorry, you ran out of tries. The word was " + self.word + ". Maybe next time!")
 
     def display_hangman(self, tries):
-        stages = [  # final state: head, body, both arms, and both legs
+        stages = [
             """
-               -----
-               |   |
-               |   O
-               |  /|\\
-               |  / \\
+               --------
+               |      |
+               |      O
+               |     \|/
+               |      |
                -
             """,
-            # head, body, one arm, one leg
             """
-               -----
-               |   |
-               |   O
-               |  /|\\
-               |  /
+               --------
+               |      |
+               |      O
+               |     \|/
+               |      |
+               |     / 
                -
             """,
-            # head, body, one arm
             """
-               -----
-               |   |
-               |   O
-               |  /|
-               |
+               --------
+               |      |
+               |      O
+               |     \|/
+               |      |
+               |      
                -
             """,
-            # head, body
             """
-               -----
-               |   |
-               |   O
-               |   |
-               |
+               --------
+               |      |
+               |      O
+               |     \|
+               |      |
+               |     
                -
             """,
-            # head
             """
-               -----
-               |   |
-               |   O
-               |
-               |
+               --------
+               |      |
+               |      O
+               |      |
+               |      |     
                -
             """,
-            # initial empty state
             """
-               -----
-               |   |
-               |
-               |
-               |
+               --------
+               |      |
+               |      O    
+               |      
+               |     
+               -
+            """,
+            """
+               --------
+               |      |
+               |          
+               |      
+               |     
                -
             """
         ]
-        return stages[min(max(0, tries), len(stages) - 1)]  # Ensure tries is within valid range
+        return stages[tries]
 
-class HangmanApp(App):
-    def build(self):
-        return HangmanGame()
+    def show_popup(self, message):
+        popup = Popup(title='Message', content=Label(text=message), size_hint=(None, None), size=(400, 200))
+        popup.open()
 
 if __name__ == "__main__":
     HangmanApp().run()

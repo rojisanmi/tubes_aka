@@ -4,13 +4,26 @@
         Label:
             id: hangman_label
             text: root.display_hangman(root.tries)
+            font_size: 24
+            size_hint_y: None
+            height: '50dp'
+        
         Label:
             id: word_label
             text: root.word_completion
+            font_size: 24
+            size_hint_y: None
+            height: '50dp'
+        
         TextInput:
             id: input_box
             hint_text: 'Guess a letter or word'
             multiline: False
+            size_hint_y: None
+            height: '40dp'
+        
         Button:
             text: 'Guess'
-            on_press: root.make_guess()
+            on_press: root.make_guess(input_box.text)
+            size_hint_y: None
+            height: '50dp'
