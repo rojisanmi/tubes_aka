@@ -7,7 +7,7 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.popup import Popup
 
 # Sample word list
-word_list = ["PYTHON", "KIVY", "HANGMAN", "PROGRAMMING", "DEVELOPER"]
+word_list = ["PYTHON", "KIVY", "HANGMAN", "PROGRAMMING", "DEVELOPER", "UNCOPYRIGHTABLE","ABCDEFGHIJKLMNOPQRSTUVWXYZ"]
 
 class HangmanApp(App):
     def build(self):
@@ -38,42 +38,43 @@ class HangmanApp(App):
         self.process_guess(guess)
 
     def process_guess(self, guess):
-        if self.tries <= 0:
+        if self.tries == 0:
             self.show_popup("Sorry, you ran out of tries. The word was " + self.word + ". Maybe next time!")
             return
-
-        if len(guess) == 1 and guess.isalpha():
-            if guess in self.guessed_letters:
-                self.show_popup("You already guessed the letter " + guess)
-            elif guess not in self.word:
-                self.tries -= 1
-                self.guessed_letters.append(guess)
-                self.show_popup(guess + " is not in the word.")
-            else:
-                self.guessed_letters.append(guess)
-                self.word_completion = ''.join(
-                    [letter if letter in self.guessed_letters else '_' for letter in self.word]
-                )
-                if "_" not in self.word_completion:
+        else:
+            if len(guess) == 1 and guess.isalpha():
+                if guess in self.guessed_letters:
+                    self.show_popup("You already guessed the letter " + guess)
+                elif guess not in self.word:
+                    self.tries -= 1
+                    self.guessed_letters.append(guess)
+                    self.show_popup(guess + " is not in the word.")
+                else:
+                    self.guessed_letters.append(guess)
+                    self.word_completion = ''.join(
+                        [letter if letter in self.guessed_letters else '_' for letter in self.word]
+                    )
+                    if "_" not in self.word_completion:
+                        self.show_popup("Congrats, you guessed the word! You win!")
+                        return
+            elif len(guess) == len(self.word) and guess.isalpha():
+                if guess != self.word:
+                    self.tries -= 1
+                    self.show_popup(guess + " is not the word.")
+                else:
+                    self.word_completion = self.word
                     self.show_popup("Congrats, you guessed the word! You win!")
                     return
-        elif len(guess) == len(self.word) and guess.isalpha():
-            if guess != self.word:
-                self.tries -= 1
-                self.show_popup(guess + " is not the word.")
             else:
-                self.word_completion = self.word
-                self.show_popup("Congrats, you guessed the word! You win!")
-                return
-        else:
-            self.show_popup("Not a valid guess.")
+                self.show_popup("Not a valid guess.")
 
-        self.hangman_label.text = self.display_hangman(self.tries)
-        self.word_label.text = self.word_completion
+            self.hangman_label.text = self.display_hangman(self.tries)
+            self.word_label.text = self.word_completion
 
-        # Recursively prompt for the next guess
-        if self.tries > 0 and "_" in self.word_completion:
-            self.input_box.focus = True
+            if self.tries > 0 and "_" in self.word_completion:
+                new_guess = self.input_box.text.upper()
+                if new_guess:
+                    self.process_guess(new_guess)
 
     def display_hangman(self, tries):
         stages = [

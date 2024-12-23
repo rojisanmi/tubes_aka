@@ -7,7 +7,7 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.popup import Popup
 
 # Sample word list
-word_list = ["PYTHON", "KIVY", "HANGMAN", "PROGRAMMING", "DEVELOPER"]
+word_list = ["PYTHON", "KIVY", "HANGMAN", "PROGRAMMING", "DEVELOPER", "UNCOPYRIGHTABLE","ABCDEFGHIJKLMNOPQRSTUVWXYZ"]
 
 class HangmanApp(App):
     def build(self):
