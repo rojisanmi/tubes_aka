@@ -1,0 +1,16 @@
+<HangmanApp>:
+    BoxLayout:
+        orientation: 'vertical'
+        Label:
+            id: hangman_label
+            text: root.display_hangman(root.tries)
+        Label:
+            id: word_label
+            text: root.word_completion
+        TextInput:
+            id: input_box
+            hint_text: 'Guess a letter or word'
+            multiline: False
+        Button:
+            text: 'Guess'
+            on_press: root.make_guess()
