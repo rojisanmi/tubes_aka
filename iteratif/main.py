@@ -39,6 +39,7 @@ class HangmanApp(App):
         while self.tries > 0:
             if len(guess) == 1 and guess.isalpha():
                 if guess in self.guessed_letters:
+                    self.tries -= 1
                     self.show_popup("You already guessed the letter " + guess)
                 elif guess not in self.word:
                     self.tries -= 1
@@ -76,15 +77,16 @@ class HangmanApp(App):
                --------
                |      |
                |      O
-               |     \|/
+               |     \\|/
                |      |
+               |     / \\
                -
             """,
             """
                --------
                |      |
                |      O
-               |     \|/
+               |     \\|/
                |      |
                |     / 
                -
@@ -93,7 +95,7 @@ class HangmanApp(App):
                --------
                |      |
                |      O
-               |     \|/
+               |     \\|/
                |      |
                |      
                -
@@ -102,7 +104,7 @@ class HangmanApp(App):
                --------
                |      |
                |      O
-               |     \|
+               |     \\|
                |      |
                |     
                -
@@ -112,13 +114,15 @@ class HangmanApp(App):
                |      |
                |      O
                |      |
-               |      |     
+               |      |
+               |     
                -
             """,
             """
                --------
                |      |
                |      O    
+               |      
                |      
                |     
                -
@@ -127,6 +131,7 @@ class HangmanApp(App):
                --------
                |      |
                |          
+               |      
                |      
                |     
                -

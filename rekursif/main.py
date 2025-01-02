@@ -39,35 +39,51 @@ class HangmanApp(App):
 
     def process_guess(self, guess):
         if self.tries == 0:
+            self.hangman_label.text = self.display_hangman(self.tries)
             self.show_popup("Sorry, you ran out of tries. The word was " + self.word + ". Maybe next time!")
             return
         else:
             if len(guess) == 1 and guess.isalpha():
                 if guess in self.guessed_letters:
+                    self.tries -= 1
+                    self.hangman_label.text = self.display_hangman(self.tries)
                     self.show_popup("You already guessed the letter " + guess)
+                    if self.tries == 0:
+                        self.show_popup("Sorry, you ran out of tries. The word was " + self.word + ". Maybe next time!")
+                        return
                 elif guess not in self.word:
                     self.tries -= 1
                     self.guessed_letters.append(guess)
+                    self.hangman_label.text = self.display_hangman(self.tries)
                     self.show_popup(guess + " is not in the word.")
+                    if self.tries == 0:
+                        self.show_popup("Sorry, you ran out of tries. The word was " + self.word + ". Maybe next time!")
+                        return
                 else:
                     self.guessed_letters.append(guess)
                     self.word_completion = ''.join(
                         [letter if letter in self.guessed_letters else '_' for letter in self.word]
                     )
                     if "_" not in self.word_completion:
+                        self.hangman_label.text = self.display_hangman(self.tries)
                         self.show_popup("Congrats, you guessed the word! You win!")
                         return
             elif len(guess) == len(self.word) and guess.isalpha():
                 if guess != self.word:
                     self.tries -= 1
+                    self.hangman_label.text = self.display_hangman(self.tries)
                     self.show_popup(guess + " is not the word.")
+                    if self.tries == 0:
+                        self.show_popup("Sorry, you ran out of tries. The word was " + self.word + ". Maybe next time!")
+                        return
                 else:
                     self.word_completion = self.word
+                    self.hangman_label.text = self.display_hangman(self.tries)
                     self.show_popup("Congrats, you guessed the word! You win!")
                     return
             else:
                 self.show_popup("Not a valid guess.")
-
+                
             self.hangman_label.text = self.display_hangman(self.tries)
             self.word_label.text = self.word_completion
 
@@ -82,15 +98,16 @@ class HangmanApp(App):
                --------
                |      |
                |      O
-               |     \|/
+               |     \\|/
                |      |
+               |     / \\
                -
             """,
             """
                --------
                |      |
                |      O
-               |     \|/
+               |     \\|/
                |      |
                |     / 
                -
@@ -99,7 +116,7 @@ class HangmanApp(App):
                --------
                |      |
                |      O
-               |     \|/
+               |     \\|/
                |      |
                |      
                -
@@ -108,7 +125,7 @@ class HangmanApp(App):
                --------
                |      |
                |      O
-               |     \|
+               |     \\|
                |      |
                |     
                -
@@ -118,13 +135,15 @@ class HangmanApp(App):
                |      |
                |      O
                |      |
-               |      |     
+               |      |
+               |     
                -
             """,
             """
                --------
                |      |
                |      O    
+               |      
                |      
                |     
                -
@@ -133,6 +152,7 @@ class HangmanApp(App):
                --------
                |      |
                |          
+               |      
                |      
                |     
                -

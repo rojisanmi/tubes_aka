@@ -13,6 +13,7 @@ class Hangman:
         else:
             if len(guess) == 1 and guess.isalpha():
                 if guess in self.guessed_letters:
+                    self.tries -= 1
                     pass  # Already guessed
                 elif guess not in self.word:
                     self.tries -= 1
